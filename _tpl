@@ -1,0 +1,31 @@
+nodegroup:
+  eks.amazonaws.com/nodegroup : adiel-be_eks_ng
+
+affinity:
+  - eu-west-1a
+  - eu-west-1b
+  - eu-west-1c
+  
+  
+  {{- define "nodeaffinity" }}
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    {{- include "nodeAffinityRequiredDuringScheduling" . }}
+{{- end }}
+
+{{- define "nodeAffinityRequiredDuringScheduling" }}
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: failure-domain.beta.kubernetes.io/zone
+          operator: In
+          values: {{- range $i, $val := .Values.affinity }}
+            - {{ $val }}
+          {{- end }}
+          {{- $nodegroup := default .Values.nodegroup -}}
+          {{- range $key, $val := $nodegroup }}
+        - key: {{ $key }}
+          operator: In
+          values: 
+          - {{ $val }}
+          {{- end }}
+{{- end }}
